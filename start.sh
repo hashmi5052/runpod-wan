@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
+set -e
 
 echo "worker-comfyui - Starting ComfyUI"
 
-TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
-export LD_PRELOAD="${TCMALLOC}"
-export PYTHONUNBUFFERED=true
-export HF_HOME="/workspace"
+# Use tcmalloc if available
+TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1 || true)"
+if [ -n "$TCMALLOC" ]; then
+    export LD_PRELOAD="${TCMALLOC}"
+fi
 
-comfy-manager-set-mode offline || echo "worker-comfyui - Could not set ComfyUI-Manager network_mode" >&2
+export PYTHONUNBUFFERED=true
+
+# Optional: set ComfyUI Manager offline mode
+if command -v comfy-manager-set-mode &> /dev/null; then
+    comfy-manager-set-mode offline || echo "worker-comfyui - Could not set ComfyUI-Manager network_mode" >&2
+fi
 
 cd /workspace/ComfyUI
 
+# Start ComfyUI
 python -u main.py \
     --port 3000 \
     --listen \
     --disable-auto-launch \
     --disable-metadata \
-    --verbose \
     --log-stdout &
 
+# Wait for ComfyUI API
 echo "worker-comfyui - Waiting for ComfyUI to be reachable"
-while ! curl -s http://127.0.0.1:3000/ > /dev/null; do
+until curl -s http://127.0.0.1:3000/ > /dev/null; do
     echo "worker-comfyui - Waiting for ComfyUI server..."
     sleep 1
 done
