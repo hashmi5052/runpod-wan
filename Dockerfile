@@ -35,7 +35,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /workspace/ComfyUI \
 # -----------------
 RUN mkdir -p /workspace/ComfyUI/models/diffusion_models \
     /workspace/ComfyUI/models/vae \
-    /workspace/ComfyUI/models/clip \
+    /workspace/ComfyUI/models/text_encoders \
     /workspace/ComfyUI/models/upscale_models \
     /workspace/ComfyUI/custom_nodes
 
@@ -48,9 +48,9 @@ RUN wget -q -O /workspace/ComfyUI/models/diffusion_models/flux1-kontext-dev-Q4_0
 RUN wget -q -O /workspace/ComfyUI/models/vae/ae.safetensors \
     https://huggingface.co/lovis93/testllm/resolve/main/ae.safetensors
 
-RUN wget -q -O /workspace/ComfyUI/models/clip/clip_l.safetensors \
+RUN wget -q -O /workspace/ComfyUI/models/text_encoders/clip_l.safetensors \
     https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors \
- && wget -q -O /workspace/ComfyUI/models/clip/t5xxl_fp8_e4m3fn.safetensors \
+ && wget -q -O /workspace/ComfyUI/models/text_encoders/t5xxl_fp8_e4m3fn.safetensors \
     https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors
 
 # -----------------
