@@ -12,7 +12,8 @@ fi
 
 export PYTHONUNBUFFERED=true
 
-cd /workspace/ComfyUI
+# Move into ComfyUI (WORKDIR is already /workspace)
+cd ComfyUI
 
 # Start ComfyUI in background
 python -u main.py \
@@ -43,6 +44,10 @@ fi
 # Start RunPod handler
 echo "[worker-comfyui] Starting RunPod handler..."
 python -u /rp_handler.py &
+HANDLER_PID=$!
 
-# Wait for all background jobs
+# Wait for either process to exit, then kill the other
 wait -n
+EXIT_CODE=$?
+echo "[worker-comfyui] One process exited (code $EXIT_CODE). Shutting down..."
+kill 0
