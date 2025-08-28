@@ -36,10 +36,11 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /workspace/ComfyUI \
 RUN mkdir -p /workspace/ComfyUI/models/diffusion_models \
     /workspace/ComfyUI/models/vae \
     /workspace/ComfyUI/models/clip \
+    /workspace/ComfyUI/models/upscale_models \
     /workspace/ComfyUI/custom_nodes
 
 # -----------------
-# Download Models
+# Download Diffusion / VAE / CLIP Models
 # -----------------
 RUN wget -q -O /workspace/ComfyUI/models/diffusion_models/flux1-kontext-dev-Q4_0.gguf \
     https://huggingface.co/QuantStack/FLUX.1-Kontext-dev-GGUF/resolve/main/flux1-kontext-dev-Q4_0.gguf
@@ -51,6 +52,26 @@ RUN wget -q -O /workspace/ComfyUI/models/clip/clip_l.safetensors \
     https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors \
  && wget -q -O /workspace/ComfyUI/models/clip/t5xxl_fp8_e4m3fn.safetensors \
     https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors
+
+# -----------------
+# Download Upscalers
+# -----------------
+RUN wget -q -O /workspace/ComfyUI/models/upscale_models/RealESRGAN_x2.pth \
+    https://huggingface.co/ai-forever/Real-ESRGAN/resolve/a86fc6182b4650b4459cb1ddcb0a0d1ec86bf3b0/RealESRGAN_x2.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/RealESRGAN_x4.pth \
+    https://huggingface.co/ai-forever/Real-ESRGAN/resolve/a86fc6182b4650b4459cb1ddcb0a0d1ec86bf3b0/RealESRGAN_x4.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/RealESRGAN_x8.pth \
+    https://huggingface.co/ai-forever/Real-ESRGAN/resolve/a86fc6182b4650b4459cb1ddcb0a0d1ec86bf3b0/RealESRGAN_x8.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/4x_foolhardy_Remacri.pth \
+    https://huggingface.co/FacehugmanIII/4x_foolhardy_Remacri/resolve/main/4x_foolhardy_Remacri.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/4x-UltraSharp.pth \
+    https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/4x_NMKD-Siax_200k.pth \
+    https://huggingface.co/gemasai/4x_NMKD-Siax_200k/resolve/main/4x_NMKD-Siax_200k.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/8x_NMKD-Superscale_150000_G.pth \
+    https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/8x_NMKD-Superscale_150000_G.pth \
+ && wget -q -O /workspace/ComfyUI/models/upscale_models/8x_NMKD-Faces_160000_G.pth \
+    https://huggingface.co/gemasai/8x_NMKD-Faces_160000_G/resolve/main/8x_NMKD-Faces_160000_G.pth
 
 # -----------------
 # Clone Custom Nodes
