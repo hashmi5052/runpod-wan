@@ -1,55 +1,80 @@
+# Use multi-stage build with caching optimizations
+# Base image MUST be CUDA 12.8 or newer for RTX 5090 (Blackwell) support.
 FROM nvidia/cuda:12.8.1-devel-ubuntu22.04
 
+# Consolidated environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \
     PYTHONUNBUFFERED=1 \
     CMAKE_BUILD_PARALLEL_LEVEL=8
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# --- CRITICAL CHANGE: Set standard RunPod working directory ---
 WORKDIR /workspace
 
-# -----------------
-# Install system dependencies
-# -----------------
+# Install Python 3.10 specifically and make it the default
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.10 python3.10-dev python3.10-distutils python3-venv \
-    curl git git-lfs wget aria2 ffmpeg build-essential ninja-build libgl1 libglib2.0-0 ca-certificates \
- && ln -sf /usr/bin/python3.10 /usr/bin/python \
- && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
- && ln -sf /usr/local/bin/pip /usr/bin/pip \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+    python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
+    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
+    && ln -sf /usr/local/bin/pip /usr/bin/pip \
+    && ln -sf /usr/local/bin/pip /usr/bin/pip3 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# -----------------
-# Python base packages
-# -----------------
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir runpod requests websocket-client
+# Verify Python version
+RUN python --version && pip --version
 
-# -----------------
-# Clone ComfyUI
-# -----------------
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git ComfyUI \
- && pip install --no-cache-dir -r ComfyUI/requirements.txt
+# install runpod and requests for python
+RUN pip install runpod requests websocket-client
 
-# -----------------
-# Clone Custom Nodes
-# -----------------
-RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git ComfyUI/custom_nodes/ComfyUI-Manager \
- && git clone https://github.com/city96/ComfyUI-GGUF.git ComfyUI/custom_nodes/ComfyUI-GGUF
+# ----------------------------------------------
+# --- ComfyUI Installation ---
+# ----------------------------------------------
+# Clone ComfyUI repository into /workspace/ComfyUI
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git
 
-# Install requirements for custom nodes if present
-RUN if [ -f ComfyUI/custom_nodes/ComfyUI-Manager/requirements.txt ]; then \
-        pip install --no-cache-dir -r ComfyUI/custom_nodes/ComfyUI-Manager/requirements.txt; \
-    fi
-RUN if [ -f ComfyUI/custom_nodes/ComfyUI-GGUF/requirements.txt ]; then \
-        pip install --no-cache-dir -r ComfyUI/custom_nodes/ComfyUI-GGUF/requirements.txt; \
-    fi
+WORKDIR /workspace/ComfyUI
 
-# -----------------
-# Copy scripts
-# -----------------
-COPY rp_handler.py /rp_handler.py
-COPY start.sh /start.sh
+# Install core ComfyUI dependencies
+# CRITICAL: Install PyTorch built for CUDA 12.8 (cu128) for RTX 5090 compatibility.
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install -r requirements.txt
+
+# ----------------------------------------------
+# --- Custom Nodes Installation ---
+# ----------------------------------------------
+WORKDIR /workspace/ComfyUI/custom_nodes
+
+# 1. ComfyUI Manager
+RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git \
+    && pip install -r ComfyUI-Manager/requirements.txt
+
+# 2. ComfyUI-GGUF (Requires llama-cpp-python)
+RUN git clone https://github.com/jpsdr/ComfyUI-GGUF.git \
+    && pip install -r ComfyUI-GGUF/requirements.txt
+
+# 3. ComfyUI-VideoHelperSuite (Requires dependencies like moviepy)
+RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git \
+    && pip install -r ComfyUI-VideoHelperSuite/requirements.txt
+
+# ----------------------------------------------
+# --- Final Cleanup and Handler Setup ---
+# ----------------------------------------------
+# Change back to the main workspace directory
+WORKDIR /workspace
+
+# Add RunPod Handler and Docker container start script
+COPY start.sh rp_handler.py ./
+
+# Configure ComfyUI to use the RunPod volume for models
+COPY extra_model_paths.yaml /workspace/ComfyUI/extra_model_paths.yaml
+
+COPY comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
+RUN chmod +x /usr/local/bin/comfy-manager-set-mode
+
 RUN chmod +x /start.sh
-
-EXPOSE 3000
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT /start.sh
