@@ -50,11 +50,11 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 WORKDIR /workspace/ComfyUI/custom_nodes
 
 # 1. ComfyUI Manager
-RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git \
+RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git \
     && pip install -r ComfyUI-Manager/requirements.txt
 
 # 2. ComfyUI-GGUF (Requires llama-cpp-python)
-RUN git clone https://github.com/jpsdr/ComfyUI-GGUF.git \
+RUN git clone https://github.com/city96/ComfyUI-GGUF.git\
     && pip install -r ComfyUI-GGUF/requirements.txt
 
 # 3. ComfyUI-VideoHelperSuite (Requires dependencies like moviepy)
