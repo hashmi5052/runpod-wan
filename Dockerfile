@@ -39,9 +39,8 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git
 
 WORKDIR /workspace/ComfyUI
 
-# Install core ComfyUI dependencies
-# CRITICAL: Install PyTorch built for CUDA 12.8 (cu128) for RTX 5090 compatibility.
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+# Install PyTorch built for CUDA 12.8 (cu128) for RTX 5090 compatibility
+RUN pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128 \
     && pip install -r requirements.txt
 
 # ----------------------------------------------
@@ -49,17 +48,18 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 # ----------------------------------------------
 WORKDIR /workspace/ComfyUI/custom_nodes
 
-# 1. ComfyUI Manager
-RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git \
-    && pip install -r ComfyUI-Manager/requirements.txt
-
-# 2. ComfyUI-GGUF (Requires llama-cpp-python)
-RUN git clone https://github.com/city96/ComfyUI-GGUF.git\
-    && pip install -r ComfyUI-GGUF/requirements.txt
-
-# 3. ComfyUI-VideoHelperSuite (Requires dependencies like moviepy)
-RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git \
-    && pip install -r ComfyUI-VideoHelperSuite/requirements.txt
+# Helper function for installing custom nodes safely
+RUN bash -c '\
+install_reqs() { [ -f "$1/requirements.txt" ] && pip install -r "$1/requirements.txt" || echo "No requirements for $1"; }; \
+git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && install_reqs ComfyUI-Manager; \
+git clone https://github.com/city96/ComfyUI-GGUF.git && install_reqs ComfyUI-GGUF; \
+git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && install_reqs ComfyUI-VideoHelperSuite; \
+git clone https://github.com/kijai/ComfyUI-KJNodes.git && install_reqs ComfyUI-KJNodes; \
+git clone https://github.com/yuvraj108c/ComfyUI-Rife-Tensorrt.git && install_reqs ComfyUI-Rife-Tensorrt; \
+git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && install_reqs ComfyUI-WanVideoWrapper; \
+git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && install_reqs ComfyUI-WanAnimatePreprocess; \
+git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && install_reqs ComfyUI-segment-anything-2; \
+'
 
 # ----------------------------------------------
 # --- Final Cleanup and Handler Setup ---
