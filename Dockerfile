@@ -51,6 +51,7 @@ WORKDIR /workspace/ComfyUI/custom_nodes
 # Helper function for installing custom nodes safely
 RUN bash -c '\
 install_reqs() { [ -f "$1/requirements.txt" ] && pip install -r "$1/requirements.txt" || echo "No requirements for $1"; }; \
+rm -rf /workspace/ComfyUI/custom_nodes/ComfyUI-Manager && \
 git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && install_reqs ComfyUI-Manager; \
 git clone https://github.com/city96/ComfyUI-GGUF.git && install_reqs ComfyUI-GGUF; \
 git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && install_reqs ComfyUI-VideoHelperSuite; \
