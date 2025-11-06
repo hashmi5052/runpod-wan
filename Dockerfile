@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python --version && pip --version
 
 # install runpod and requests for python
-RUN pip install runpod requests websocket-client
+RUN pip install requests runpod==1.7.9 websocket-client onnxruntime-gpu triton mutagen
 
 # ----------------------------------------------
 # --- ComfyUI Installation ---
