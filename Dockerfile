@@ -16,7 +16,7 @@ WORKDIR /workspace
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
     curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 \
-    build-essential gcc g++ cmake \
+    build-essential gcc g++ cmake pkg-config libopenblas-dev python3-setuptools cython \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
@@ -57,7 +57,7 @@ RUN set -e && \
     rm -rf ComfyUI-WanAnimatePreprocess && git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
     rm -rf ComfyUI-segment-anything-2 && git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
     rm -rf SageAttention && git clone https://github.com/thu-ml/SageAttention.git && \
-    cd SageAttention && python setup.py install && cd .. && \
+    cd SageAttention && pip install -e . && cd .. && \
     echo "All custom nodes installed successfully."
 
 # ----------------------------------------------
