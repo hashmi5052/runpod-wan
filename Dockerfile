@@ -12,22 +12,17 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # --- Working directory ---
 WORKDIR /workspace
 
-# --- Install system dependencies and Python 3.10 ---
+# --- Install Python 3.10 and dependencies ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common ca-certificates curl wget gnupg lsb-release && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-    ffmpeg ninja-build git git-lfs aria2 vim libgl1 libglib2.0-0 \
-    build-essential gcc g++ cmake pkg-config libopenblas-dev python3-setuptools cython && \
-    ln -sf /usr/bin/python3.10 /usr/bin/python && \
-    ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
-    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 && \
-    ln -sf /usr/local/bin/pip /usr/bin/pip && \
-    ln -sf /usr/local/bin/pip /usr/bin/pip3 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
+    && ln -sf /usr/local/bin/pip /usr/bin/pip \
+    && ln -sf /usr/local/bin/pip /usr/bin/pip3 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN python --version && pip --version
 
@@ -52,7 +47,8 @@ WORKDIR /workspace/ComfyUI/custom_nodes
 
 RUN set -e && \
     echo "Installing custom nodes..." && \
-    rm -rf ComfyUI-Manager && git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && \
+    rm -rf /workspace/ComfyUI/custom_nodes/ComfyUI-Manager && \
+    git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && \
     git clone https://github.com/city96/ComfyUI-GGUF.git && \
     git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
     git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
@@ -60,8 +56,7 @@ RUN set -e && \
     git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
     git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
-    git clone https://github.com/thu-ml/SageAttention.git && \
-    cd SageAttention && pip install -e . && cd .. && \
+    cd /workspace/ComfyUI/custom_nodes && \
     for d in */; do \
         if [ -f "$d/requirements.txt" ]; then \
             echo "Installing requirements for $d"; \
