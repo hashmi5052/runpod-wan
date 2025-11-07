@@ -15,7 +15,8 @@ WORKDIR /workspace
 # --- Install system dependencies and Python 3.10 ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 \
+    build-essential gcc g++ cmake \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
@@ -45,30 +46,28 @@ RUN pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0
 # ----------------------------------------------
 WORKDIR /workspace/ComfyUI/custom_nodes
 
-RUN bash -c '\
-install_reqs() { [ -f "$1/requirements.txt" ] && pip install -r "$1/requirements.txt" || echo "No requirements for $1"; }; \
-rm -rf /workspace/ComfyUI/custom_nodes/ComfyUI-Manager && \
-git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && install_reqs ComfyUI-Manager; \
-git clone https://github.com/city96/ComfyUI-GGUF.git && install_reqs ComfyUI-GGUF; \
-git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && install_reqs ComfyUI-VideoHelperSuite; \
-git clone https://github.com/kijai/ComfyUI-KJNodes.git && install_reqs ComfyUI-KJNodes; \
-git clone https://github.com/yuvraj108c/ComfyUI-Rife-Tensorrt.git && install_reqs ComfyUI-Rife-Tensorrt; \
-git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && install_reqs ComfyUI-WanVideoWrapper; \
-git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && install_reqs ComfyUI-WanAnimatePreprocess; \
-git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && install_reqs ComfyUI-segment-anything-2; \
-# --- SageAttention Installation ---
-git clone https://github.com/thu-ml/SageAttention.git && \
-cd SageAttention && python setup.py install && cd ..; \
-'
+RUN set -e && \
+    echo "Installing custom nodes..." && \
+    rm -rf ComfyUI-Manager && git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && \
+    rm -rf ComfyUI-GGUF && git clone https://github.com/city96/ComfyUI-GGUF.git && \
+    rm -rf ComfyUI-VideoHelperSuite && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    rm -rf ComfyUI-KJNodes && git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
+    rm -rf ComfyUI-Rife-Tensorrt && git clone https://github.com/yuvraj108c/ComfyUI-Rife-Tensorrt.git && \
+    rm -rf ComfyUI-WanVideoWrapper && git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    rm -rf ComfyUI-WanAnimatePreprocess && git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
+    rm -rf ComfyUI-segment-anything-2 && git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
+    rm -rf SageAttention && git clone https://github.com/thu-ml/SageAttention.git && \
+    cd SageAttention && python setup.py install && cd .. && \
+    echo "All custom nodes installed successfully."
 
 # ----------------------------------------------
 # --- Final Setup ---
 # ----------------------------------------------
 WORKDIR /workspace
-COPY start.sh rp_handler.py ./
+COPY start.sh rp_handler.py ./ 
 COPY extra_model_paths.yaml /workspace/ComfyUI/extra_model_paths.yaml
 COPY comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
 
-RUN chmod +x /usr/local/bin/comfy-manager-set-mode /start.sh
+RUN chmod +x /usr/local/bin/comfy-manager-set-mode /workspace/start.sh
 
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT ["/workspace/start.sh"]
