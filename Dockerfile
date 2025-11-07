@@ -12,18 +12,23 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # --- Working directory ---
 WORKDIR /workspace
 
-# --- Install system dependencies and Python 3.10 ---
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# --- Fix repositories and install system dependencies ---
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common ca-certificates curl wget gnupg lsb-release && \
+    add-apt-repository universe && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 \
-    build-essential gcc g++ cmake pkg-config libopenblas-dev python3-setuptools cython \
-    && ln -sf /usr/bin/python3.10 /usr/bin/python \
-    && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
-    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
-    && ln -sf /usr/local/bin/pip /usr/bin/pip \
-    && ln -sf /usr/local/bin/pip /usr/bin/pip3 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg ninja-build git git-lfs aria2 vim libgl1 libglib2.0-0 \
+    build-essential gcc g++ cmake pkg-config libopenblas-dev python3-setuptools cython && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 && \
+    ln -sf /usr/local/bin/pip /usr/bin/pip && \
+    ln -sf /usr/local/bin/pip /usr/bin/pip3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN python --version && pip --version
 
@@ -38,8 +43,8 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git
 WORKDIR /workspace/ComfyUI
 
 # --- Install PyTorch for CUDA 12.8 (RTX 5090 support) ---
-RUN pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install -r requirements.txt
+RUN pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128 && \
+    pip install -r requirements.txt
 
 # ----------------------------------------------
 # --- Install Custom Nodes ---
@@ -49,15 +54,23 @@ WORKDIR /workspace/ComfyUI/custom_nodes
 RUN set -e && \
     echo "Installing custom nodes..." && \
     rm -rf ComfyUI-Manager && git clone https://github.com/Comfy-Org/ComfyUI-Manager.git && \
-    rm -rf ComfyUI-GGUF && git clone https://github.com/city96/ComfyUI-GGUF.git && \
-    rm -rf ComfyUI-VideoHelperSuite && git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
-    rm -rf ComfyUI-KJNodes && git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
-    rm -rf ComfyUI-Rife-Tensorrt && git clone https://github.com/yuvraj108c/ComfyUI-Rife-Tensorrt.git && \
-    rm -rf ComfyUI-WanVideoWrapper && git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
-    rm -rf ComfyUI-WanAnimatePreprocess && git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
-    rm -rf ComfyUI-segment-anything-2 && git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
-    rm -rf SageAttention && git clone https://github.com/thu-ml/SageAttention.git && \
+    git clone https://github.com/city96/ComfyUI-GGUF.git && \
+    git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
+    git clone https://github.com/yuvraj108c/ComfyUI-Rife-Tensorrt.git && \
+    git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
+    git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
+    git clone https://github.com/thu-ml/SageAttention.git && \
     cd SageAttention && pip install -e . && cd .. && \
+    for d in */; do \
+        if [ -f "$d/requirements.txt" ]; then \
+            echo "Installing requirements for $d"; \
+            pip install -r "$d/requirements.txt"; \
+        else \
+            echo "No requirements.txt in $d"; \
+        fi; \
+    done && \
     echo "All custom nodes installed successfully."
 
 # ----------------------------------------------
