@@ -12,11 +12,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # --- Working directory ---
 WORKDIR /workspace
 
-# --- Fix repositories and install system dependencies ---
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# --- Install system dependencies and Python 3.10 ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common ca-certificates curl wget gnupg lsb-release && \
-    add-apt-repository universe && \
+    add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
