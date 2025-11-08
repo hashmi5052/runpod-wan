@@ -71,10 +71,14 @@ RUN set -e && \
 # --- Final Setup ---
 # ----------------------------------------------
 WORKDIR /workspace
-COPY start.sh rp_handler.py ./ 
+
+# Copy both scripts to /workspace and also handler to root for RunPod
+COPY start.sh /start.sh
+COPY rp_handler.py /rp_handler.py
 COPY extra_model_paths.yaml /workspace/ComfyUI/extra_model_paths.yaml
 COPY comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
 
-RUN chmod +x /usr/local/bin/comfy-manager-set-mode /workspace/start.sh
+RUN chmod +x /usr/local/bin/comfy-manager-set-mode /start.sh
 
-ENTRYPOINT ["/workspace/start.sh"]
+# Default entrypoint for normal Docker runs
+ENTRYPOINT ["/start.sh"]
