@@ -57,6 +57,7 @@ RUN set -e && \
     git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git && \
     git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
     git clone https://github.com/rgthree/rgthree-comfy.git && \
+    git clone https://github.com/Fannovel16/ComfyUI-Frame-Interpolation.git && \
     cd /workspace/ComfyUI/custom_nodes && \
     for d in */; do \
         if [ -f "$d/requirements.txt" ]; then \
