@@ -12,10 +12,14 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # --- Working directory ---
 WORKDIR /workspace
 
-# --- Install Python 3.10 and dependencies ---
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-    curl ffmpeg ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+# --- Install Python 3.10 and dependencies, including FFmpeg 6 ---
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends software-properties-common \
+    && add-apt-repository ppa:savoury1/ffmpeg6 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
+        curl ffmpeg=6* ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
