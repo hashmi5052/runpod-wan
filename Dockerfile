@@ -12,14 +12,19 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # --- Working directory ---
 WORKDIR /workspace
 
-# --- Install Python 3.10 and dependencies, including FFmpeg 6 ---
+# --- Install Python 3.10 and FFmpeg 6 ---
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
-    && add-apt-repository ppa:savoury1/ffmpeg6 \
+    && apt-get install -y --no-install-recommends \
+        software-properties-common wget gnupg \
+    # Add Savoury1 key for FFmpeg 6
+    && wget -qO - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF6ECB376D3D8C09E" \
+       | gpg --dearmor > /usr/share/keyrings/savoury-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/savoury-archive-keyring.gpg] http://ppa.launchpad.net/savoury1/ffmpeg6/ubuntu $(lsb_release -cs) main" \
+       > /etc/apt/sources.list.d/ffmpeg6.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-        curl ffmpeg=6* ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+        ffmpeg=6* curl ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
