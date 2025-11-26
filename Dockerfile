@@ -14,16 +14,12 @@ WORKDIR /workspace
 
 # --- Install Python 3.10 and dependencies, including FFmpeg 6 ---
 RUN apt-get update \
-    # 1. Install PPA management tools
     && apt-get install -y --no-install-recommends software-properties-common \
-    # 2. Add the FFmpeg 6 PPA
     && add-apt-repository -y ppa:ubuntuhandbook1/ffmpeg6 \
-    # 3. Update again to fetch packages from the new PPA
     && apt-get update \
-    # 4. Install Python, FFmpeg 6, and all necessary development libraries
     && apt-get install -y --no-install-recommends \
-        python3.10 python3.10-dev python3.10-distutils python3-pip python3.10-venv \
-        curl **ffmpeg** **libavcodec-dev libavformat-dev libavutil-dev** ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
+        python3.10 python3.10-dev python3.10-distutils \
+        curl ffmpeg libavcodec-dev libavformat-dev libavutil-dev ninja-build git git-lfs wget aria2 vim libgl1 libglib2.0-0 build-essential gcc \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 \
@@ -31,7 +27,6 @@ RUN apt-get update \
     && ln -sf /usr/local/bin/pip /usr/bin/pip3 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
 RUN python --version && pip --version
 
 # --- Install base Python packages ---
